@@ -4,6 +4,7 @@ import 'package:moviesapp/models/movie_container.dart';
 import 'package:moviesapp/models/movie_detail.dart';
 import 'package:moviesapp/models/schedule.dart';
 import 'package:moviesapp/services/movie_service.dart';
+import 'package:moviesapp/widgets/tickets_modal.dart';
 
 class MoviePage extends StatefulWidget {
   final MovieContainer movie;
@@ -19,14 +20,17 @@ class _MoviePageState extends State<MoviePage> {
   late Future<List<CastMember>> cast;
   final List<Days> days = generateCurrentMonthSchedule();
   final movieService = MovieService();
-  int indexSelected = 0;
-
+  int indexDaySelected = 0;
+  int indexScheduleSelected = -1;
+  int totalNinos = 0;
+  int totalAdultos = 0;
+  String movieName = '';
   @override
   void initState() {
     super.initState();
     detail = movieService.fetchMovieDetail(widget.movie.movie.id);
     cast = movieService.getMovieCast(widget.movie.movie.id);
-    indexSelected = DateTime.now().day - 1;
+    indexDaySelected = DateTime.now().day - 1;
   }
 
   @override
@@ -75,7 +79,57 @@ class _MoviePageState extends State<MoviePage> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(10.0),
         child: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () {
+            if (indexScheduleSelected < 0) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Aviso'),
+                    content: Text('Elige un horario para poder continuar'),
+                    actions: [
+                      TextButton(
+                        child: Text('Cerrar'),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Cierra el diálogo
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+              return;
+            }
+
+            // Visualizamos el model
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled:
+                  true, // importante para usar altura personalizada
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+              ),
+              backgroundColor: Colors.white,
+              builder: (context) {
+                var movie = movieName;
+                var day =
+                    '${days[indexDaySelected].day} ${days[indexDaySelected].dayName}';
+                var hall = days[indexDaySelected]
+                    .schedules[indexScheduleSelected]
+                    .hall;
+                var hour = days[indexDaySelected]
+                    .schedules[indexScheduleSelected]
+                    .hour;
+
+                return TicketsModal(
+                  movie: movie,
+                  day: day,
+                  hall: hall,
+                  hour: hour,
+                );
+              },
+            );
+          },
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
           child: Text(
@@ -107,14 +161,15 @@ class _MoviePageState extends State<MoviePage> {
                 final schedule = days[index];
                 return GestureDetector(
                   onTap: () {
-                    indexSelected = index;
+                    indexDaySelected = index;
+                    indexScheduleSelected = -1;
                     setState(() {});
                   },
                   child: Container(
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: indexSelected == index
+                      color: indexDaySelected == index
                           ? Colors.lightBlue
                           : Colors.white60,
                       borderRadius: BorderRadius.circular(15),
@@ -144,26 +199,41 @@ class _MoviePageState extends State<MoviePage> {
           SizedBox(height: 15),
           // Lista de hoorarios
           Column(
-            children: List.generate(days[indexSelected].schedules.length, (
+            children: List.generate(days[indexDaySelected].schedules.length, (
               index,
             ) {
-              final schedule = days[indexSelected].schedules[index];
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.timelapse_rounded, size: 30, color: Colors.blue),
-                  SizedBox(width: 20),
-                  Text(
-                    schedule.hour,
-                    style: TextStyle(fontSize: 28, color: Colors.white),
+              final schedule = days[indexDaySelected].schedules[index];
+              return GestureDetector(
+                onTap: () {
+                  indexScheduleSelected = index;
+                  setState(() {});
+                },
+                child: Container(
+                  color: indexScheduleSelected == index
+                      ? Colors.red
+                      : Colors.transparent,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.timelapse_rounded,
+                        size: 30,
+                        color: Colors.blue,
+                      ),
+                      SizedBox(width: 20),
+                      Text(
+                        schedule.hour,
+                        style: TextStyle(fontSize: 28, color: Colors.white),
+                      ),
+                      Spacer(),
+                      Text(
+                        schedule.hall,
+                        style: TextStyle(fontSize: 16, color: Colors.white60),
+                      ),
+                    ],
                   ),
-                  Spacer(),
-                  Text(
-                    schedule.hall,
-                    style: TextStyle(fontSize: 16, color: Colors.white60),
-                  ),
-                ],
+                ),
               );
             }),
           ),
@@ -222,6 +292,7 @@ class _MoviePageState extends State<MoviePage> {
   }
 
   Widget _loadMovieContent(MovieDetail movie) {
+    movieName = movie.title;
     return SingleChildScrollView(
       child: Column(
         children: [
