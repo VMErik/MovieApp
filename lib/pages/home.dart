@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:moviesapp/models/movie.dart';
-import 'package:moviesapp/models/movie_container.dart';
 import 'package:moviesapp/pages/favorites_view.dart';
 import 'package:moviesapp/pages/home_view.dart';
-import 'package:moviesapp/services/movie_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

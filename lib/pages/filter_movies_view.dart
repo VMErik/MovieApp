@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:go_router/go_router.dart';
-import 'package:moviesapp/models/movie.dart';
-import 'package:moviesapp/models/movie_container.dart';
 import 'package:moviesapp/models/movie_filter.dart';
 import 'package:moviesapp/widgets/my_grid.dart';
 

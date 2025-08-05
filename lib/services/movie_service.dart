@@ -1,13 +1,13 @@
 import 'dart:convert';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:moviesapp/models/cast.dart';
 import 'package:moviesapp/models/movie.dart';
 import 'package:moviesapp/models/movie_detail.dart';
 
 class MovieService {
-  final String apiKey = '2eeae4bca0a52f6c03206b09e97bddd0';
-
+  final String apiKey = dotenv.env['TMDB_API_KEY'] ?? '';
   Future<List<Movie>> fetchPopularMovies() async {
     final url = Uri.parse(
       'https://api.themoviedb.org/3/movie/popular?api_key=$apiKey&language=es-ES&page=1',
